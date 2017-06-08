@@ -1,0 +1,19 @@
+{
+  "name": "cthulu",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ryan Rife",
+  "license": "ISC",
+  "dependencies": {
+    "https": "^1.0.0",
+    "mime": "^1.3.6",
+    "nodegit": "^0.18.3",
+    "nodegit-clone": "^1.2.0",
+    "path": "^0.12.7",
+    "request": "^2.81.0"
+  }
+}

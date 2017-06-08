@@ -1,0 +1,29 @@
+{
+    "demandware": {
+        "server":"cert.staging.web.demandware.net",
+        "username":"",
+        "password":"",        
+        "servercert": "./cert.staging.web.demandware.pem",
+        "privatekey": {
+            "certpath": "./build.pem",
+            "keypath": "./build.key",
+            "password": "build"
+        }
+    },
+    "cartridges": {
+        "app_storefront": {
+            "repo":"myrepo"
+        }
+    },
+    "repos": {
+        "myrepo": {
+            "url": "git@github.com:dw/mycarts.git",
+            "ssh": {
+                "privatekey": "/Users/ubuntu/.ssh/id_rsa",
+                "publickey": "/Users/ubuntu/.ssh/id_rsa.pub",
+                "password": ""            
+            },
+            "branch": "master"
+        }
+    }
+}
