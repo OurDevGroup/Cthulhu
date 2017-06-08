@@ -2,11 +2,11 @@ var fs = require('fs');
 const https = require('https');
 var dw = require('./dwdav');
 var git = require('./git');
-var conf = require('./config.json');
+var conf = require('./config.json'); //see config.json.sample on how to build this file
 
 var serverOptions = {
     host: conf.demandware.server,
-    ca: fs.readFileSync(conf.demandwares.servercert),
+    ca: fs.readFileSync(conf.demandwares.servercert,'utf8'),
     cert: fs.readFileSync(conf.demandware.privatekey.certpath,'utf8'),
     key: fs.readFileSync(conf.demandware.privatekey.keypath,'utf8'),
     passphrase: conf.demandware.privatekey.password,
@@ -23,7 +23,3 @@ var repoOptions = {
 }
 
 git.clone(repoOptions);
-
-//dw.createFolder(serverOptions, 'HelloAaron')
-//dw.uploadFile(serverOptions, 'HelloAaron', './categories.zip')
-//dw.deleteFile(serverOptions, 'HelloAaron/categories.zip')
