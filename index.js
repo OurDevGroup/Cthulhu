@@ -4,6 +4,12 @@ var dw = require('./dwdav');
 var git = require('./git');
 var conf = require('./config.json'); //see config.json.sample on how to build this file
 
+//create the certs folder
+if(!fs.existsSync('./certs')) {
+    fs.mkdirSync('./certs')
+    console.log('The certs folder was missing, you must put your private upload certificate, private server certificates in this folder.');
+}
+
 var serverOptions = {
     host: conf.demandware.server,
     ca: fs.readFileSync(conf.demandwares.servercert,'utf8'),
