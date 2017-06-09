@@ -14,12 +14,4 @@ var serverOptions = {
     pass: conf.demandware.password  
 }
 
-var repoOptions = {
-    repo: conf.repos.mikgit.url,
-    privateKey: conf.repos.mikgit.ssh.privatekey,
-    publicKey: conf.repos.mikgit.ssh.publickey,
-    passphrase: conf.repos.mikgit.ssh.password,
-    branch: conf.repos.mikgit.branch
-}
-
-git.clone(repoOptions);
+git.clone();
