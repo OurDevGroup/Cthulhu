@@ -1,22 +1,23 @@
 const read = require('./read');
 
+const conf = require('./config.json');
+
 var nconf = require('nconf');
 nconf.file({ file: './config.json' });
 nconf.defaults(
     {
-        "connections": {
-        },
-        "cartridges": {
-        },
-        "repos": {
-        }
+        "defaults": {},
+        "connections": {},
+        "cartridges": {},
+        "repos": {}
     });
 
 const prog = require('commander');
 prog.version('0.0.1');
 
 prog.command('server [host]')
-    .description("Configure SFCC server connections.")
+    .description("Configure SFCC server connections")
+    .option('-l, --list','list all defined SFCC connections')
     .option('-a, --add', "define a new SFCC server connection")
     .option('-u, --update', "update an existing SFCC server connection")
     .option('-d, --delete', "delete and existing SFCC server connection")
@@ -25,10 +26,33 @@ prog.command('server [host]')
         if(options.add && host) {
             configServer(host);
         } 
+        if(options.list) {
+            for(var key in conf.connections) {
+                console.log(key)            
+            }
+            console.log("\n")
+        }
+        if(options.set && host) {
+            nconf.set('defaults:connection', host);
+            
+            nconf.save((e)=> { 
+                if(!e) {
+                    console.log("\r\nDefault server configuration set.\r\n")
+                } 
+            });            
+        }
+    });
+
+prog.command('repo [url]')
+    .description("Configure GIT repository URLs")
+    .option('-a, --add','configure a new GIT repository')
+    .option('-l, --list','list all defined GIT repositories')
+    .action(function(url, options) {
+
     });
     
 
-console.log ('\r\n\r\n^(;,;)^ Cthulu Build Script\r\n        for Salesforce Commerce Cloud\r\n');
+console.log ('\n\n^(;,;)^ Cthulu Build Script\n        for Salesforce Commerce Cloud\n');
 
 
 prog.parse(process.argv);
@@ -80,8 +104,12 @@ function configServer(host) {
                                     nconf.set('connections:' + host +':privatekey:keypath', keyfile);
                                     nconf.set('connections:' + host +':privatekey:password', utils.encrypt(pass,user));
 
-                                    console.log("\r\nServer configuration complete.\r\n")
-                                    nconf.save((e)=> { if(e)console.log(e); })  ;
+                                    
+                                    nconf.save((e)=> { 
+                                        if(!e) {
+                                            console.log("\r\nServer configuration complete.\r\n")
+                                        }  
+                                    });
                                 });
                             });
                         });                              
