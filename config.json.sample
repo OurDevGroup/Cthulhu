@@ -12,7 +12,7 @@
     },
     "cartridges": {
         "app_storefront": {
-            "repo":"myrepo"
+            "path":"myrepo/cartridges/app_storefront"
         }
     },
     "repos": {
