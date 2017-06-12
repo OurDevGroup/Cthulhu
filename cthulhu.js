@@ -45,12 +45,59 @@ prog.command('server [host]')
         }
     });
 
-prog.command('repo [url]')
+prog.command('repo [url] [branch]')
     .description("Configure GIT repository URLs")
     .option('-a, --add','configure a new GIT repository')
     .option('-l, --list','list all defined GIT repositories')
-    .action(function(url, options) {
+    .option('-d, --delete','remove GIT repository')
+    .option('-c, --clean','nuke the working directory')
+    .option('-f, --fetch','fetch latest code from remote server')
+    .option('-b, --branch','switch branch for a given repo')
+    .action(function(url, branch, options) {
+        if(options.clean) {
+            var util = require('./utils')
+            util.clean();
+            console.log("Working folder was nuked!\n");
+        }
+        if(options.fetch) {
+            //var branch = url || 'master'
+            var git = require('./git')
+            console.log("Pulling code from remote servers...");
+            git.clone(url, () => {
+                console.log("Code pull is complete.\n");
+            });
+        }
+        if(options.branch && url) {
+            if(!branch) {                
+                for(var key in conf.repos) {
+                    conf.repos[key]["branch"] = url;                    
+                }
+                nconf.set('repos', conf.repos);       
+                nconf.save((e)=> { if(e)console.log(e); })
+                console.log("\nAll repos set to branch '"+ url +"'.\r\n")         
+            } else {
+                nconf.set('repos:' + url +':branch', branch || 'master');
+                nconf.save((e)=> { if(e)console.log(e); })
+                console.log("\n" + url + " repo set to branch '"+ branch +"'.\r\n")                  
+            }
 
+        }
+        if(options.add && url) {
+            configRepo(url)
+        }
+        if(options.delete && url) {
+            var x = nconf.get('repos');
+            delete x[url];        
+            nconf.set('repos',x );        
+            nconf.save((e)=> { if(e)console.log(e); });
+            console.log(url, "removed.\n");
+        }
+        if(options.list) {
+            for(var key in conf.repos) {
+                console.log(key)            
+            }
+            console.log("\n")            
+        }
     });
     
 prog.command('zip')
@@ -63,30 +110,52 @@ prog.command('zip')
 
 console.log ('\n\n^(;,;)^ Cthulu Build Script\n        for Salesforce Commerce Cloud\n        powered by Benny P\n');
 
-
 prog.parse(process.argv);
 
+function configRepo(url) {
+    repo = url.substring(url.lastIndexOf('/')+1).split('.')[0];
+    console.log('Configuring', repo, '...');
+    nconf.set('repos:' + repo, '');
+    nconf.set('repos:' + repo + ':url', url);
+    if(url.split(':')[0] === 'https' || url.split(':')[0] === 'http') {
+        read({prompt:'Does ' + repo + ' require an user and password? [yes/no]: '}, (e, needspass) => {  
+            if(needspass === 'yes') {
+                read({prompt:'Enter the username for ' + repo + ' (~/.ssh/id_rsa.pub): '}, (e, user) => {
+                    read({prompt:'Enter the password for ' + user + ': ', silent:true}, (e, pass) => {
+                        nconf.set('repos:' + repo +':username', user);
+                        nconf.set('repos:' + repo +':password', pass.length > 0 ? utils.encrypt(pass,user) : '');
+                        nconf.save((e)=> { if(e)console.log(e); })
+                        console.log("\r\Repo configuration complete.\r\n")
+                    });
+                });
+            } else {
+                console.log("\r\Repo configuration complete.\r\n")
+                nconf.save((e)=> { if(e)console.log(e); })               
+            }
+        });
+    } else {
+        read({prompt:'Does ' + repo + ' require an ssh key? [yes/no]: '}, (e, needskey) => {  
+            if(needskey === 'yes') {
+                read({prompt:'Enter the private ssh key location used for ' + repo + ' (~/.ssh/id_rsa): '}, (e, privkey) => {
+                    read({prompt:'Enter the public ssh key location used for ' + repo + ' (~/.ssh/id_rsa.pub): '}, (e, pubkey) => {
+                        read({prompt:'Enter the password for the ssh key: ', silent:true}, (e, pass) => {
+                            nconf.set('repos:' + repo +':ssh:privatekey', privkey || '~/.ssh/id_rsa');
+                            nconf.set('repos:' + repo +':ssh:publickey', pubkey || '~/.ssh/id_rsa');
+                            nconf.set('repos:' + repo +':ssh:password', pass.length > 0 ? utils.encrypt(pass,repo) : '');
+                            nconf.save((e)=> { if(e)console.log(e); })
+                            console.log("\r\Repo configuration complete.\r\n")
+                        });
+                    });
+                });
+            } else {
+                console.log("\r\Repo configuration complete.\r\n")
+                nconf.save((e)=> { if(e)console.log(e); })
+            }
 
-function hidden(query, callback) {
-    var stdin = process.openStdin();
-    process.stdin.on("data", function(char) {
-        char = char + "";
-        switch (char) {
-            case "\n":
-            case "\r":
-            case "\u0004":
-                stdin.pause();
-                break;
-            default:
-                process.stdout.write("\033[2K\033[200D" + query + Array(rl.line.length+1).join("*"));
-                break;
-        }
-    });
+        });
 
-    rl.question(query, (value) => {
-        rl.history = rl.history.slice(1);    np 
-        callback(value);
-    });
+        
+    }
 }
 
 function buildZip() {
@@ -95,7 +164,6 @@ function buildZip() {
         console.log('Build archive generated at', file)
     });
 }
-
 
 function configServer(host) {
     nconf.set('connections:' + host, '')
@@ -130,7 +198,9 @@ function configServer(host) {
                         });                              
                     });
                 } else {
-                    nconf.remove('connections:' + host + ':privatekey');
+                    var x = nconf.get('connections:' + host );
+                    delete x.privatekey;  
+                    nconf.set('connections:' + host, x);
                     console.log("\r\nServer configuration complete.\r\n")
                     nconf.save((e)=> { if(e)console.log(e); })
                 }
