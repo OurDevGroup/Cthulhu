@@ -1,8 +1,8 @@
 var express = require('express');
 var app = express();
 
-app.use(express.static('public'));
-app.use(require('./routes/index.js'));
+app.use(express.static('ui/public'));
+app.use(require('./ui/routes/index.js'));
 
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs');
