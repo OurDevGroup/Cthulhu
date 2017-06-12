@@ -53,6 +53,13 @@ prog.command('repo [url]')
 
     });
     
+prog.command('zip')
+    .option('-b --build', 'build zip for current deployment')
+    .action(function(options) {
+        if(options.build) {
+            buildZip();
+        }
+    });
 
 console.log ('\n\n^(;,;)^ Cthulu Build Script\n        for Salesforce Commerce Cloud\n        powered by Benny P\n');
 
@@ -82,6 +89,12 @@ function hidden(query, callback) {
     });
 }
 
+function buildZip() {
+    var zip = require('./zip');
+    zip.zipDirectories(null, (file) => {
+        console.log('Build archive generated at', file)
+    });
+}
 
 
 function configServer(host) {

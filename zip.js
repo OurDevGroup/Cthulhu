@@ -1,6 +1,6 @@
 var conf = require("./config.json");
 
-exports.zipDirectories = function(zipname) {
+exports.zipDirectories = function(zipname, callback) {
     var fs = require('fs');
     var dir = __dirname + '/build/';
 
@@ -12,16 +12,15 @@ exports.zipDirectories = function(zipname) {
 
     var fs = require('fs');
     var archiver = require('archiver');
-    
-    var output = fs.createWriteStream(__dirname + '/build/' + zipname + '.zip');
+    var outfile = '/build/' + zipname + '.zip';
+    var output = fs.createWriteStream(__dirname + outfile);
     var archive = archiver('zip', {
         zlib: { level: 9 },
         store: true
     });
 
     output.on('close', function() {
-        //replace with callback.
-        console.log('Build Zip File Created!');
+        if(callback) callback(outfile);
     });
     
     archive.on('error', function(err) {
