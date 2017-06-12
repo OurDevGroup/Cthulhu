@@ -9,7 +9,9 @@ nconf.defaults(
         "defaults": {},
         "connections": {},
         "cartridges": {},
-        "repos": {}
+        "repos": {},
+        "deployments": {},
+        "processors": {}
     });
 
 const prog = require('commander');
@@ -52,7 +54,7 @@ prog.command('repo [url]')
     });
     
 
-console.log ('\n\n^(;,;)^ Cthulu Build Script\n        for Salesforce Commerce Cloud\n');
+console.log ('\n\n^(;,;)^ Cthulu Build Script\n        for Salesforce Commerce Cloud\n        powered by Benny P\n');
 
 
 prog.parse(process.argv);

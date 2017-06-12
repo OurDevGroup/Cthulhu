@@ -38,3 +38,7 @@ exports.decrypt = function(text,pass){
     dec += decipher.final('utf8');
     return dec;
 }
+
+exports.buildnumber = function() {
+    return Date.now().toString();
+}
