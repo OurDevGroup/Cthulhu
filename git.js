@@ -3,28 +3,28 @@ var conf = require('./config.json');
 
 exports.clone = function(branch, callback) {
 
-    var checkout = function(repo, callback) {
-        console.log(typeof branch);
+    var checkout = function(repo, branch, callback) {
+        branch = branch || 'master';
+
         if(typeof branch == "string") {
-            console.log("test");
             repo.checkoutBranch(branch);
             repo.mergeBranches(branch, "origin/"+branch);
         }
-        else
-            repo.checkoutBranch('build');
+
         if(callback) callback();
     }
 
     function clonerepo(reponame,callback) {
+        var path = require('flavored-path');
 
         var cloneOpts = {
             fetchOpts: {
                 callbacks: {
-                    credentials: function(url, userName) {            
+                    credentials: function(url, userName) {      
                         return nodegit.Cred.sshKeyNew(
                         userName,
-                        conf.repos[reponame].ssh.publickey,
-                        conf.repos[reponame].ssh.privatekey,
+                        path.get(conf.repos[reponame].ssh.publickey),
+                        path.get(conf.repos[reponame].ssh.privatekey),
                         conf.repos[reponame].ssh.password
                         );
                     }
@@ -35,13 +35,12 @@ exports.clone = function(branch, callback) {
 
         console.log("Pulling " + reponame + " repo...");
         nodegit.Repository.open('./working/' + reponame).then((repo) => {
-
-            checkout(repo, callback);
+            checkout(repo, conf.repos[reponame].branch, callback);
         }).catch(function(err) {
             nodegit.Clone(conf.repos[reponame].url, './working/' + reponame, cloneOpts).then((repo) => {
-                checkout(repo, callback);            
+                checkout(repo, conf.repos[reponame].branch, callback);            
             }).catch(function (err) {
-                console.log("error",err);
+                if(err) console.log("error",err);
             });        
         });
     }

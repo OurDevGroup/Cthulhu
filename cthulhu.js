@@ -117,45 +117,48 @@ function configRepo(url) {
     console.log('Configuring', repo, '...');
     nconf.set('repos:' + repo, '');
     nconf.set('repos:' + repo + ':url', url);
-    if(url.split(':')[0] === 'https' || url.split(':')[0] === 'http') {
-        read({prompt:'Does ' + repo + ' require an user and password? [yes/no]: '}, (e, needspass) => {  
-            if(needspass === 'yes') {
-                read({prompt:'Enter the username for ' + repo + ' (~/.ssh/id_rsa.pub): '}, (e, user) => {
-                    read({prompt:'Enter the password for ' + user + ': ', silent:true}, (e, pass) => {
-                        nconf.set('repos:' + repo +':username', user);
-                        nconf.set('repos:' + repo +':password', pass.length > 0 ? utils.encrypt(pass,user) : '');
-                        nconf.save((e)=> { if(e)console.log(e); })
-                        console.log("\r\Repo configuration complete.\r\n")
-                    });
-                });
-            } else {
-                console.log("\r\Repo configuration complete.\r\n")
-                nconf.save((e)=> { if(e)console.log(e); })               
-            }
-        });
-    } else {
-        read({prompt:'Does ' + repo + ' require an ssh key? [yes/no]: '}, (e, needskey) => {  
-            if(needskey === 'yes') {
-                read({prompt:'Enter the private ssh key location used for ' + repo + ' (~/.ssh/id_rsa): '}, (e, privkey) => {
-                    read({prompt:'Enter the public ssh key location used for ' + repo + ' (~/.ssh/id_rsa.pub): '}, (e, pubkey) => {
-                        read({prompt:'Enter the password for the ssh key: ', silent:true}, (e, pass) => {
-                            nconf.set('repos:' + repo +':ssh:privatekey', privkey || '~/.ssh/id_rsa');
-                            nconf.set('repos:' + repo +':ssh:publickey', pubkey || '~/.ssh/id_rsa');
-                            nconf.set('repos:' + repo +':ssh:password', pass.length > 0 ? utils.encrypt(pass,repo) : '');
+    read({prompt:'What is the default branch for ' + repo + '? (master): '}, (e, branch) => {  
+        branch = branch || 'master';
+        nconf.set('repos:' + repo +':branch', branch);
+   
+        if(url.split(':')[0] === 'https' || url.split(':')[0] === 'http') {
+            read({prompt:'Does ' + repo + ' require an user and password? [yes/no]: '}, (e, needspass) => {  
+                if(needspass === 'yes') {
+                    read({prompt:'Enter the username for ' + repo + ' (~/.ssh/id_rsa.pub): '}, (e, user) => {
+                        read({prompt:'Enter the password for ' + user + ': ', silent:true}, (e, pass) => {
+                            nconf.set('repos:' + repo +':username', user);
+                            nconf.set('repos:' + repo +':password', pass.length > 0 ? utils.encrypt(pass,user) : '');
                             nconf.save((e)=> { if(e)console.log(e); })
                             console.log("\r\Repo configuration complete.\r\n")
                         });
                     });
-                });
-            } else {
-                console.log("\r\Repo configuration complete.\r\n")
-                nconf.save((e)=> { if(e)console.log(e); })
-            }
+                } else {
+                    console.log("\r\Repo configuration complete.\r\n")
+                    nconf.save((e)=> { if(e)console.log(e); })               
+                }
+            });
+        } else {
+            read({prompt:'Does ' + repo + ' require an ssh key? [yes/no]: '}, (e, needskey) => {  
+                if(needskey === 'yes') {
+                    read({prompt:'Enter the private ssh key location used for ' + repo + ' (~/.ssh/id_rsa): '}, (e, privkey) => {
+                        read({prompt:'Enter the public ssh key location used for ' + repo + ' (~/.ssh/id_rsa.pub): '}, (e, pubkey) => {
+                            read({prompt:'Enter the password for the ssh key: ', silent:true}, (e, pass) => {
+                                nconf.set('repos:' + repo +':ssh:privatekey', privkey || '~/.ssh/id_rsa');
+                                nconf.set('repos:' + repo +':ssh:publickey', pubkey || '~/.ssh/id_rsa.pub');
+                                nconf.set('repos:' + repo +':ssh:password', pass.length > 0 ? utils.encrypt(pass,repo) : '');
+                                nconf.save((e)=> { if(e)console.log(e); })
+                                console.log("\r\Repo configuration complete.\r\n")
+                            });
+                        });
+                    });
+                } else {
+                    console.log("\r\Repo configuration complete.\r\n")
+                    nconf.save((e)=> { if(e)console.log(e); })
+                }
 
-        });
-
-        
-    }
+            });
+        }
+    });
 }
 
 function buildZip() {
