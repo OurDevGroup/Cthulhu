@@ -1,18 +1,5 @@
 const read = require('./read');
-
-const conf = require('./config.json');
-
-var nconf = require('nconf');
-nconf.file({ file: './config.json' });
-nconf.defaults(
-    {
-        "defaults": {},
-        "connections": {},
-        "cartridges": {},
-        "repos": {},
-        "deployments": {},
-        "processors": {}
-    });
+const conf = require('./config');
 
 const prog = require('commander');
 prog.version('0.0.1');
@@ -35,13 +22,9 @@ prog.command('server [host]')
             console.log("\n")
         }
         if(options.set && host) {
-            nconf.set('defaults:connection', host);
-            
-            nconf.save((e)=> { 
-                if(!e) {
-                    console.log("\r\nDefault server configuration set.\r\n")
-                } 
-            });            
+            conf.save('defaults:connection', host, () =>{
+                console.log("\r\nDefault server configuration set.\r\n")
+            });           
         }
     });
 
@@ -72,13 +55,13 @@ prog.command('repo [url] [branch]')
                 for(var key in conf.repos) {
                     conf.repos[key]["branch"] = url;                    
                 }
-                nconf.set('repos', conf.repos);       
-                nconf.save((e)=> { if(e)console.log(e); })
-                console.log("\nAll repos set to branch '"+ url +"'.\r\n")         
+                conf.save('repos', conf.repos, () => {
+                    console.log("\nAll repos set to branch '"+ url +"'.\r\n")         
+                });
             } else {
-                nconf.set('repos:' + url +':branch', branch || 'master');
-                nconf.save((e)=> { if(e)console.log(e); })
-                console.log("\n" + url + " repo set to branch '"+ branch +"'.\r\n")                  
+                conf.save('repos:' + url +':branch', branch || 'master', () => {
+                    console.log("\n" + url + " repo set to branch '"+ branch +"'.\r\n");
+                });
             }
 
         }
@@ -86,11 +69,9 @@ prog.command('repo [url] [branch]')
             configRepo(url)
         }
         if(options.delete && url) {
-            var x = nconf.get('repos');
-            delete x[url];        
-            nconf.set('repos',x );        
-            nconf.save((e)=> { if(e)console.log(e); });
-            console.log(url, "removed.\n");
+            conf.delete('repos:' + url, () => {
+                console.log(url, "removed.\n");
+            });
         }
         if(options.list) {
             for(var key in conf.repos) {
@@ -115,26 +96,25 @@ prog.parse(process.argv);
 function configRepo(url) {
     repo = url.substring(url.lastIndexOf('/')+1).split('.')[0];
     console.log('Configuring', repo, '...');
-    nconf.set('repos:' + repo, '');
-    nconf.set('repos:' + repo + ':url', url);
+    conf.save('repos:' + repo, '');
+    conf.save('repos:' + repo + ':url', url);
     read({prompt:'What is the default branch for ' + repo + '? (master): '}, (e, branch) => {  
         branch = branch || 'master';
-        nconf.set('repos:' + repo +':branch', branch);
+        conf.save('repos:' + repo +':branch', branch);
    
         if(url.split(':')[0] === 'https' || url.split(':')[0] === 'http') {
             read({prompt:'Does ' + repo + ' require an user and password? [yes/no]: '}, (e, needspass) => {  
                 if(needspass === 'yes') {
                     read({prompt:'Enter the username for ' + repo + ' (~/.ssh/id_rsa.pub): '}, (e, user) => {
                         read({prompt:'Enter the password for ' + user + ': ', silent:true}, (e, pass) => {
-                            nconf.set('repos:' + repo +':username', user);
-                            nconf.set('repos:' + repo +':password', pass.length > 0 ? utils.encrypt(pass,user) : '');
-                            nconf.save((e)=> { if(e)console.log(e); })
-                            console.log("\r\Repo configuration complete.\r\n")
+                            conf.save('repos:' + repo +':username', user);
+                            conf.save('repos:' + repo +':password', pass.length > 0 ? utils.encrypt(pass,user) : '', () => {
+                                console.log("\r\Repo configuration complete.\r\n")
+                            });                            
                         });
                     });
                 } else {
-                    console.log("\r\Repo configuration complete.\r\n")
-                    nconf.save((e)=> { if(e)console.log(e); })               
+                    console.log("\r\Repo configuration complete.\r\n")           
                 }
             });
         } else {
@@ -143,17 +123,16 @@ function configRepo(url) {
                     read({prompt:'Enter the private ssh key location used for ' + repo + ' (~/.ssh/id_rsa): '}, (e, privkey) => {
                         read({prompt:'Enter the public ssh key location used for ' + repo + ' (~/.ssh/id_rsa.pub): '}, (e, pubkey) => {
                             read({prompt:'Enter the password for the ssh key: ', silent:true}, (e, pass) => {
-                                nconf.set('repos:' + repo +':ssh:privatekey', privkey || '~/.ssh/id_rsa');
-                                nconf.set('repos:' + repo +':ssh:publickey', pubkey || '~/.ssh/id_rsa.pub');
-                                nconf.set('repos:' + repo +':ssh:password', pass.length > 0 ? utils.encrypt(pass,repo) : '');
-                                nconf.save((e)=> { if(e)console.log(e); })
-                                console.log("\r\Repo configuration complete.\r\n")
+                                conf.save('repos:' + repo +':ssh:privatekey', privkey || '~/.ssh/id_rsa');
+                                conf.save('repos:' + repo +':ssh:publickey', pubkey || '~/.ssh/id_rsa.pub');
+                                conf.save('repos:' + repo +':ssh:password', pass.length > 0 ? utils.encrypt(pass,repo) : '', () => {
+                                    console.log("\r\Repo configuration complete.\r\n")
+                                });
                             });
                         });
                     });
                 } else {
                     console.log("\r\Repo configuration complete.\r\n")
-                    nconf.save((e)=> { if(e)console.log(e); })
                 }
 
             });
@@ -169,43 +148,35 @@ function buildZip() {
 }
 
 function configServer(host) {
-    nconf.set('connections:' + host, '')
+    conf.save('connections:' + host, '')
 
     read({prompt:'Enter the username for ' + host + ': '}, (e, user) => {
-        nconf.set('connections:' + host +':username', user);
+        conf.save('connections:' + host +':username', user);
         
         read({prompt:'Enter the password for ' + user + ': ', silent:true}, (e, pass) => {
             var utils = require('./utils.js');
-            nconf.set('connections:' + host +':password', utils.encrypt(pass,user));
+            conf.save('connections:' + host +':password', utils.encrypt(pass,user));
 
             read({prompt:'Does ' + host + ' require a certificate to upload files? [yes/no]: '}, (e, needscert) => {                        
                 if(needscert === "yes") {
                     read({prompt:'Enter the SFCC private certificate for ' + host + ': '}, (e, privatecert) => {
-                        nconf.set('connections:' + host +':servercert', privatecert);
+                        conf.save('connections:' + host +':servercert', privatecert);
                         
                         read({prompt:'Enter the path for the private PEM file: '}, (e, pemfile) => {
                             read({prompt:'Enter the path for the private KEY file: '}, (e, keyfile) => {
                                 read({prompt:'Enter the passphrase for the private key: ', silent:true}, (e, pass) => {
-                                    nconf.set('connections:' + host +':privatekey:certpath', pemfile);
-                                    nconf.set('connections:' + host +':privatekey:keypath', keyfile);
-                                    nconf.set('connections:' + host +':privatekey:password', utils.encrypt(pass,user));
-
-                                    
-                                    nconf.save((e)=> { 
-                                        if(!e) {
-                                            console.log("\r\nServer configuration complete.\r\n")
-                                        }  
+                                    conf.save('connections:' + host +':privatekey:certpath', pemfile);
+                                    conf.save('connections:' + host +':privatekey:keypath', keyfile);
+                                    conf.save('connections:' + host +':privatekey:password', utils.encrypt(pass,user), () => {
+                                        console.log("\r\nServer configuration complete.\r\n")
                                     });
                                 });
                             });
                         });                              
                     });
                 } else {
-                    var x = nconf.get('connections:' + host );
-                    delete x.privatekey;  
-                    nconf.set('connections:' + host, x);
+                    var x = conf.delete('connections:' + host + ":privatekey");
                     console.log("\r\nServer configuration complete.\r\n")
-                    nconf.save((e)=> { if(e)console.log(e); })
                 }
                 
             });
