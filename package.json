@@ -34,13 +34,19 @@
     "request": "^2.81.0"
   },
   "devDependencies": {
-    "nodemon": "^1.11.0",
-    "npm-run-all": "^3.1.2",
-    "react-scripts": "0.4.1",
     "babel-core": "^6.9.0",
     "babel-loader": "^6.2.4",
     "babel-preset-react": "^6.5.0",
     "babel-register": "^6.9.0",
+    "grunt": "^1.0.1",
+    "grunt-cli": "^1.2.0",
+    "grunt-contrib-sass": "^1.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-sass": "^1.2.1",
+    "load-grunt-tasks": "^3.5.2",
+    "nodemon": "^1.11.0",
+    "npm-run-all": "^3.1.2",
+    "react-scripts": "0.4.1",
     "webpack": "2.2.1"
   }
 }

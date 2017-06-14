@@ -26,7 +26,7 @@ exports.save = function(setting, value, callback) {
         if (e) {
             console.log(e); 
         } else  {
-            if(callback) callback();
+            if(callback) callback(setting + " Was Updated!");
         }
     });
 }

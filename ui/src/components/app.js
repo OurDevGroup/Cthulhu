@@ -1,4 +1,6 @@
 import React from 'react';
+import config from '../../../config.json';
+import Sections from './sections';
 
 class App extends React.Component {
     constructor(props) {
@@ -37,8 +39,11 @@ class App extends React.Component {
     }
 
     renderMessage() {
-        if(this.state.message !== ''){
-            return (<div>{this.state.message}</div>)
+        if(this.state.message !== '') {
+            if(this.state.authenticated)
+                return (<div className="alert alert-success">{this.state.message}</div>)
+            else
+                return (<div className="alert alert-danger">{this.state.message}</div>)
         }
         else
             return null
@@ -47,28 +52,50 @@ class App extends React.Component {
     renderBody() {
         if(!this.state.authenticated){
             return (
-                <form onSubmit={this.handleSubmit}>
-                    <label>
-                    Username:
-                    <input type="text" value={this.state.username} onChange={this.handleUsernameChange} />
-                    </label>
-                    <label>
-                    Password:
-                        <input type="password" value={this.state.password} onChange={this.handlePasswordChange} />
-                    </label>
-                    <input type="submit" value="Submit" />
-                </form>
+                <div>
+                    <img src="images/cuthulhuLogo.jpg" className="img-fluid" />
+                    <form onSubmit={this.handleSubmit}>
+                        <div className="formGroup col-sm-12">
+                            <label>
+                                Username:
+                            </label>
+                            <input type="text" value={this.state.username} onChange={this.handleUsernameChange} />
+                        </div>
+                        <div className="formGroup col-sm-12">
+                            <label>
+                                Password:
+                            </label>
+                            <input type="password" value={this.state.password} onChange={this.handlePasswordChange} />
+                        </div>
+                        <input type="submit" value="Submit" className="btn btn-danger" />
+                    </form>
+                </div>
             )
         }
-        else
-            return null
+        else {
+            console.log(config.repos);
+            var repos = Object.keys(config.repos).map((key, index) => {
+                console.log(key);
+                return (
+                    <Sections parentSectionName="repos" sectionName={key} />
+                );
+            })
+            return (
+                <div>
+                    <img src="images/cuthulhuLogo.jpg" className="img-fluid" />
+                    <Sections sectionName="repos" />
+                    <Sections sectionName="connections" />
+                    <Sections sectionName="defaults" />
+                </div>
+            )
+        }
     }
 
     render() {
         return (
-            <div>
+            <div className="pageContainer col-sm-12">
                 <div>{this.renderMessage()}</div>
-                <div>{this.renderBody()}</div>
+                <div className="col-sm-12">{this.renderBody()}</div>
             </div>
         );
     }
