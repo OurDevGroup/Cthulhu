@@ -1,8 +1,8 @@
-const read = require('./read');
-const conf = require('./config');
+const read = require('./lib/read');
+const conf = require('./lib/config');
 
 const prog = require('commander');
-prog.version('0.0.1');
+prog.version('0.1.3');
 
 prog.command('server [host]')
     .description("Configure SFCC server connections")
@@ -38,13 +38,13 @@ prog.command('repo [url] [branch]')
     .option('-b, --branch','switch branch for a given repo')
     .action(function(url, branch, options) {
         if(options.clean) {
-            var util = require('./utils')
+            var util = require('./lib/utils')
             util.clean();
             console.log("Working folder was nuked!\n");
         }
         if(options.fetch) {
             //var branch = url || 'master'
-            var git = require('./git')
+            var git = require('./lib/git')
             console.log("Pulling code from remote servers...");
             git.clone(url, () => {
                 console.log("Code pull is complete.\n");
@@ -86,6 +86,63 @@ prog.command('zip')
     .action(function(options) {
         if(options.build) {
             buildZip();
+        }
+    });
+
+
+prog.command('cartridge [name]')
+    .option('-a, --add', 'define new cartridge')
+    .option('-l, --list', 'list all cartridge definitions')
+    .option('-d, --delete', 'delete a cartridge definition')
+    .action(function(name, options) {
+        if(name && options.delete) {
+            conf.delete('cartridges:' + name, () => {
+                console.log(name, "removed.");
+            });
+        }
+
+        if(options.list) {
+            for(var key in conf.cartridges) {
+                console.log(key)            
+            }
+            console.log("\n")
+        }        
+
+        if(name && options.add) {
+            var repos = Object.keys(conf.repos);
+            
+            read({prompt:'What is the repo contains ' + name + '?' + (repos.length > 0 ? ' (' + repos[0] + ')' : '') +': '}, (e, repo) => {  
+                repo = repo || (repos.length > 0 ? repos[0] : null);
+                
+                var util = require('./lib/utils');
+
+                util.findDirectory('./working/' + repo, name, (path) => {
+                    path = path.replace('./working', '');
+                    read({prompt:'Where is the ' + name + ' located in the working directory?' + (path.length > 0 ? ' (' + path + ')' : '') +': '}, (e, cartpath) => {  
+                        cartpath = cartpath || path
+                        conf.save('cartridges:' + name + ':path', cartpath, () => {
+                            console.log(name,"added.");
+                        });
+                    });
+                });
+
+            });
+        }
+    });
+
+prog.command('deploy [name]')
+    .option('-a, --add', 'create new deployment definition with all cartridges and processors')
+    .option('-l, --list', 'list all deployment definitions')
+    .option('-d, --delete', 'delete a deployment definition')
+    .action(function(name, options) {
+        if(name && options.delete) {
+            conf.delete('deployments:' + name, () => {
+                console.log(name, "removed.");
+            });
+        }   
+
+        if(name && options.add) {
+            defineDeploy(name)     
         }
     });
 
@@ -141,7 +198,7 @@ function configRepo(url) {
 }
 
 function buildZip() {
-    var zip = require('./zip');
+    var zip = require('./lib/zip');
     zip.zipDirectories(null, (file) => {
         console.log('Build archive generated at', file)
     });
@@ -154,7 +211,7 @@ function configServer(host) {
         conf.save('connections:' + host +':username', user);
         
         read({prompt:'Enter the password for ' + user + ': ', silent:true}, (e, pass) => {
-            var utils = require('./utils.js');
+            var utils = require('./lib/utils.js');
             conf.save('connections:' + host +':password', utils.encrypt(pass,user));
 
             read({prompt:'Does ' + host + ' require a certificate to upload files? [yes/no]: '}, (e, needscert) => {                        
@@ -182,4 +239,8 @@ function configServer(host) {
             });
         });                
     });
+}
+
+function defineDeploy(name) {
+    
 }
