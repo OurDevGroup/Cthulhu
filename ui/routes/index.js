@@ -1,5 +1,6 @@
 var router = require('express').Router();
 var dw = require('../../js/dwOCAPI');
+var config = require('../../config');
 var React = require('react');
 var ReactDOMServer = require('react-dom/server');
 var StaticRouter = require('react-router').StaticRouter;
@@ -24,8 +25,26 @@ router.post('/login', function(request, response) {
 
     request.on('end', function () {
         dw.login(JSON.parse(jsonStr).username, JSON.parse(jsonStr).password, function(jsonString) {
-            console.log(JSON.parse(jsonString).authenticated);
             response.send({message: JSON.parse(jsonString).message, authenticated: JSON.parse(jsonString).authenticated});
+        });
+    });
+});
+
+router.post('/changeSetting', function(request, response) {
+    var jsonStr = '';
+    var settingName = request.query.settingName;
+
+    request.on('data', function (data) {
+        jsonStr += data;
+    });
+
+    request.on('end', function () {
+        config.save(settingName, JSON.parse(jsonStr), function(message) {
+            console.log(config[settingName]);
+            if(typeof message != "undefined")
+                response.send({message: message, updated: true});
+            if(typeof message == "undefined")
+                response.send({message: "Setting was not updated!", updated: false});
         });
     });
 });
