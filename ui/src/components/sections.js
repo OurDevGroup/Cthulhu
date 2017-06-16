@@ -230,8 +230,7 @@ class Sections extends React.Component {
 
     componentWillUpdate(nextProps, nextState) {
         if (nextState.updated) {
-            window.location.reload();
-            console.log(config.cartridges);
+            window.location.replace();
             return true;
         }
         else{

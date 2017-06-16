@@ -10274,16 +10274,15 @@ class App extends __WEBPACK_IMPORTED_MODULE_0_react___default.a.Component {
     constructor(props) {
         super(props);
         var ONE_HOUR = 60 * 60 * 1000;
-        var login = false;
         if (!(new Date() - localStorage.getItem("date") < ONE_HOUR)) {
-            login = true;
+            llocalStorage.setItem("authenticated", false);
         }
 
         this.state = {
             username: '',
             password: '',
             message: '',
-            authenticated: false, //typeof localStorage.getItem("authenticated") !== "undefined" ? localStorage.getItem("authenticated") : false,
+            authenticated: typeof localStorage.getItem("authenticated") !== "undefined" ? localStorage.getItem("authenticated") : false,
             showMessage: false
         };
 
@@ -10721,8 +10720,7 @@ class Sections extends __WEBPACK_IMPORTED_MODULE_0_react___default.a.Component {
 
     componentWillUpdate(nextProps, nextState) {
         if (nextState.updated) {
-            window.location.reload();
-            console.log(__WEBPACK_IMPORTED_MODULE_1__config_json___default.a.cartridges);
+            window.location.replace();
             return true;
         } else {
             console.log("test2");

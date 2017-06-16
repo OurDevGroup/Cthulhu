@@ -7,16 +7,15 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         var ONE_HOUR = 60 * 60 * 1000;
-        var login = false;
         if(!(((new Date) - localStorage.getItem("date")) < ONE_HOUR)) {
-            login = true;
+            llocalStorage.setItem("authenticated", false)
         }
 
         this.state = {
             username: '',
             password: '',
             message: '',
-            authenticated: false,//typeof localStorage.getItem("authenticated") !== "undefined" ? localStorage.getItem("authenticated") : false,
+            authenticated: typeof localStorage.getItem("authenticated") !== "undefined" ? localStorage.getItem("authenticated") : false,
             showMessage: false
         };
 
