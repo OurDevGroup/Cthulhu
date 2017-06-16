@@ -90,6 +90,143 @@ prog.command('zip')
     });
 
 
+prog.command('sass [infile] [outfile]')
+    .option('-l, --list', 'list all file and path definitions for the Sass processor')
+    .option('-a, --add', 'add file or path defintion')
+    .option('-d, --delete', 'delete a file or path defintion')
+    .option('-c, --compile', 'compile scss files into css')
+    .action(function(infile, outfile, options) {
+        if(!conf.processors.sass) {
+            conf.save("processors:sass:files", []);
+            conf.save("processors:sass:paths", []);
+        }
+
+        if(options.compile) {
+            var sass = require('./lib/sass')
+            sass.compile(null, null, () => {
+
+            });
+        }
+
+        if(options.list) {
+            if(conf.processors.sass.files) {
+                for(var f in conf.processors.sass.files) {
+                    console.log(conf.processors.sass.files[f], "->", f)
+                }
+            } else {
+                console.log("No file definitions found.");
+            }
+            if(conf.processors.sass.paths) {
+                for(var p in conf.processors.sass.paths) {
+                    console.log(conf.processors.sass.paths[p])
+                }
+            } else {
+                console.log("No path definitions found.");
+            }            
+            console.log("\n")    
+        }
+
+        if(options.delete && infile) {
+            var files = Object.keys(conf.processors.sass.files);
+            for(f in files) {
+                if(files[f].indexOf(infile) > 0) {
+                    var delFile = files[f];
+                    conf.delete("processors:sass:files:" + delFile, () => {
+                        console.log(delFile, "was removed from Sass definitions.\n");        
+                    });
+                }             
+            }
+
+            var paths = conf.processors.sass.paths;
+            for(var f in paths); {
+                if(paths[f] == infile) {
+                    paths = paths.splice(f+1,1);
+                    conf.save("processors:sass:paths", paths, () => {
+                        console.log(infile, "was removed from Sass definitions.\n");
+                    });
+                    return;
+                }             
+            }
+        }
+
+        if(options.add) {
+            if(infile && outfile) {
+                //var files = conf.processors.sass.files;
+                //files.push({target:infile, output:outfile});
+                conf.save("processors:sass:files:" + outfile, inffile);
+            } else if(infile) {
+                var paths = conf.processors.sass.paths;
+                paths.push(infile);
+                conf.save("processors:sass:paths", paths);
+            }
+            console.log(infile,"was added to the Sass defingitions.\n")
+        }
+    });
+
+prog.command('minify [infile] [outfile]')
+    .option('-l, --list', 'list all file and path definitions for the minify processor')
+    .option('-a, --add', 'add file or path defintion')
+    .option('-d, --delete', 'delete a file or path defintion')
+    .action(function(infile, outfile, options) {
+        if(!conf.processors.minify) {
+            conf.save("processors:minify:files", []);
+            conf.save("processors:minify:paths", []);
+        }
+
+        if(options.list) {
+            if(conf.processors.minify.files) {
+                for(var f in conf.processors.minify.files) {
+                    console.log(conf.processors.minify.files[f], "->", f)
+                }
+            } else {
+                console.log("No file definitions found.");
+            }
+            if(conf.processors.minify.paths) {
+                for(var p in conf.processors.minify.paths) {
+                    console.log(conf.processors.minify.paths[p])
+                }
+            } else {
+                console.log("No path definitions found.");
+            }            
+            console.log("\n")    
+        }
+
+        if(options.delete && infile) {
+            var files = Object.keys(conf.processors.minify.files);
+            for(f in files) {
+                if(files[f].indexOf(infile) > 0) {
+                    var delFile = files[f];
+                    conf.delete("processors:minify:files:" + delFile, () => {
+                        console.log(delFile, "was removed from minify definitions.\n");        
+                    });
+                }             
+            }
+
+            var paths = conf.processors.minify.paths;
+            for(var f in paths); {
+                if(paths[f] == infile) {
+                    paths = paths.splice(f+1,1);
+                    conf.save("processors:minify:paths", paths, () => {
+                        console.log(infile, "was removed from minify definitions.\n");
+                    });
+                    return;
+                }             
+            }
+        }
+
+        if(options.add) {
+            if(infile && outfile) {
+                conf.save("processors:minify:files:" + outfile, inffile);
+            } else if(infile) {
+                var paths = conf.processors.minify.paths;
+                paths.push(infile);
+                conf.save("processors:minify:paths", paths);
+            }
+            console.log(infile,"was added to the minify defingitions.\n")
+        }
+    });
+
+
 prog.command('cartridge [name]')
     .option('-a, --add', 'define new cartridge')
     .option('-l, --list', 'list all cartridge definitions')
@@ -131,18 +268,15 @@ prog.command('cartridge [name]')
     });
 
 prog.command('deploy [name]')
-    .option('-a, --add', 'create new deployment definition with all cartridges and processors')
-    .option('-l, --list', 'list all deployment definitions')
-    .option('-d, --delete', 'delete a deployment definition')
     .action(function(name, options) {
-        if(name && options.delete) {
-            conf.delete('deployments:' + name, () => {
-                console.log(name, "removed.");
+        if(name && conf.connections[name]) {
+            console.log("Deploying to", name);
+            var deploy = require('./lib/deploy')
+            deploy.deploy(name, () => {
+                console.log("Deployment complete.")
             });
-        }   
-
-        if(name && options.add) {
-            defineDeploy(name)     
+        } else {
+            console.log("Invalid deployment server.");
         }
     });
 
@@ -199,13 +333,13 @@ function configRepo(url) {
 
 function buildZip() {
     var zip = require('./lib/zip');
-    zip.zipDirectories(null, (file) => {
+    zip.compress(null, null, (file) => {
         console.log('Build archive generated at', file)
     });
 }
 
 function configServer(host) {
-    conf.save('connections:' + host, '')
+    conf.save('connections:' + host + ':host', host)
 
     read({prompt:'Enter the username for ' + host + ': '}, (e, user) => {
         conf.save('connections:' + host +':username', user);
