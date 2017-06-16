@@ -30,6 +30,7 @@
     "nodegit-clone": "^1.2.0",
     "path": "^0.12.7",
     "react": "^15.5.4",
+    "react-addons-css-transition-group": "^15.6.0",
     "react-dom": "^15.5.4",
     "react-router": "^4.1.1",
     "read": "^1.0.7",
