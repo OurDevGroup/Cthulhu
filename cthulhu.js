@@ -366,7 +366,7 @@ function configServer(host) {
                         });                              
                     });
                 } else {
-                    var x = conf.delete('connections:' + host + ":privatekey");
+                    var x = conf.delete('connections:' + host + ':privatekey');
                     console.log("\r\nServer configuration complete.\r\n")
                 }
                 
