@@ -1,6 +1,6 @@
 var router = require('express').Router();
 var dw = require('../../js/dwOCAPI');
-var config = require('../../config');
+var config = require('../../lib/config');
 var React = require('react');
 var ReactDOMServer = require('react-dom/server');
 var StaticRouter = require('react-router').StaticRouter;

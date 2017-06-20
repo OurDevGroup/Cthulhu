@@ -1,15 +1,22 @@
 import React from 'react';
 import config from '../../../config.json';
 import Sections from './sections';
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 class App extends React.Component {
     constructor(props) {
         super(props);
+        var ONE_HOUR = 60 * 60 * 1000;
+        if(!(((new Date) - localStorage.getItem("date")) < ONE_HOUR)) {
+            llocalStorage.setItem("authenticated", false)
+        }
+
         this.state = {
             username: '',
             password: '',
             message: '',
-            authenticated: false
+            authenticated: typeof localStorage.getItem("authenticated") !== "undefined" ? localStorage.getItem("authenticated") : false,
+            showMessage: false
         };
 
         this.handleUsernameChange = this.handleUsernameChange.bind(this);
@@ -32,18 +39,41 @@ class App extends React.Component {
             type: 'POST',
             data: '{"username":"'+this.state.username+'","password":"'+this.state.password+'"}',
             success: function(data) {
-                this.setState({message: data.message, authenticated: data.authenticated});
+                this.setState({message: data.message, authenticated: data.authenticated})
+                localStorage.setItem("authenticated", this.state.authenticated);
+                localStorage.setItem("date", new Date());
+                console.log(localStorage.getItem("authenticated"))
             }.bind(this)
         });
+        this.setState({showMessage: true});
         event.preventDefault();
+    }
+
+    MessageGood() {
+        return (
+            <div className="alert alert-success" onClick={this.handleMessageClick.bind(this)}>{this.state.message}</div>
+        )
+    }
+
+    MessageBad() {
+        return (
+            <div className="alert alert-danger" onClick={this.handleMessageClick.bind(this)}>{this.state.message}</div>
+        )
+    }
+
+    handleMessageClick(event) {
+        this.setState({
+            showMessage: !this.state.showMessage
+        })
     }
 
     renderMessage() {
         if(this.state.message !== '') {
-            if(this.state.authenticated)
-                return (<div className="alert alert-success">{this.state.message}</div>)
-            else
-                return (<div className="alert alert-danger">{this.state.message}</div>)
+            let message = this.state.authenticated ? this.MessageGood() : this.MessageBad();
+            
+            return (
+                <div style={{overflow: "hidden"}} onClick={this.handleMessageClick.bind(this)}>{message}</div>
+            )
         }
         else
             return null
@@ -67,34 +97,39 @@ class App extends React.Component {
                             </label>
                             <input type="password" value={this.state.password} onChange={this.handlePasswordChange} />
                         </div>
-                        <input type="submit" value="Submit" className="btn btn-danger" />
+                        <input type="submit" value="Submit" className="btn btn-default" />
                     </form>
                 </div>
             )
         }
         else {
             console.log(config.repos);
-            var repos = Object.keys(config.repos).map((key, index) => {
+            var configs = Object.keys(config).map((key, index) => {
                 console.log(key);
                 return (
-                    <Sections parentSectionName="repos" sectionName={key} />
+                    <Sections sectionName={key} />
                 );
             })
             return (
                 <div>
                     <img src="images/cuthulhuLogo.jpg" className="img-fluid" />
-                    <Sections sectionName="repos" />
-                    <Sections sectionName="connections" />
-                    <Sections sectionName="defaults" />
+                    {configs}
                 </div>
             )
         }
     }
 
     render() {
+        let messageShow = this.state.showMessage ? this.renderMessage() : '';
         return (
             <div className="pageContainer col-sm-12">
-                <div>{this.renderMessage()}</div>
+                <ReactCSSTransitionGroup 
+                    transitionName="slide"
+                    transitionEnterTimeout = {5000}
+                    transitionLeaveTimeout = {5000}
+                >
+                    {messageShow}
+                </ReactCSSTransitionGroup>
                 <div className="col-sm-12">{this.renderBody()}</div>
             </div>
         );
