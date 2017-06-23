@@ -1,5 +1,5 @@
-var u = require('./lib/dwdav')
+var git = require('./lib/git')
 
-u.deploy(null, '/Users/ryanrife/Downloads/Cthulu/build/1497629356606.zip', () => {
-
+git.clone(()=> {
+console.log("done")
 });

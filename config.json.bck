@@ -1,0 +1,194 @@
+{
+  "processors": {
+    "sass": {
+      "files": {
+        "mikgit/cartridges/int_mikSASS/cartridge/static/default/css/common.css": "mikgit/cartridges/int_mikSASS/scss/common.scss",
+        "mikgit/cartridges/int_mikSASS/cartridge/static/default/css/customer-service.css": "mikgit/cartridges/int_mikSASS/scss/sections/customer-service.scss",
+        "mikgit/cartridges/int_mikSASS/cartridge/static/default/css/suggestions.css": "mikgit/cartridges/int_mikSASS/scss/suggestions.scss",
+        "mikgit/cartridges/int_mikSASS/cartridge/static/default/css/grid.css": "mikgit/cartridges/int_mikSASS/scss/grid.scss",
+        "mikgit/cartridges/int_mikSASS/cartridge/static/default/css/pdp.css": "mikgit/cartridges/int_mikSASS/scss/pdp.scss",
+        "mikgit/cartridges/int_mikSASS/cartridge/static/default/css/cart.css": "mikgit/cartridges/int_mikSASS/scss/cart.scss",
+        "mikgit/cartridges/int_mikSASS/cartridge/static/default/css/orderhistory.css": "mikgit/cartridges/int_mikSASS/scss/orderhistory.scss",
+        "mikgit/cartridges/int_mikSASS/cartridge/static/default/css/pjp.css": "mikgit/cartridges/int_mikSASS/scss/pjp.scss",
+        "mikgit/cartridges/int_mikSASS/cartridge/static/default/css/slick.css": "mikgit/cartridges/int_mikSASS/scss/slick.scss",
+        "mikgit/cartridges/int_mikSASS/cartridge/static/default/css/slick-theme.css": "mikgit/cartridges/int_mikSASS/scss/slick-theme.scss"
+      }
+    },
+    "minify": {
+      "paths": [
+        "mikgit/cartridges/int_mikSASS/cartridge/static/default/css/",
+        "mikgit/cartridges/app_michaels_beyond_core/cartridge/static/default/css",
+        "mikgit/cartridges/app_michaels_beyond_core_richUI/cartridge/static/default/js"
+      ]
+    },
+    "concat": {
+      "files": {
+        "mikgit/cartridges/app_michaels_beyond_core/cartridge/static/default/css/michaels.styles.min.css": [
+          "mikgit/cartridges/app_michaels_beyond_core/cartridge/static/default/css/default.css",
+          "mikgit/cartridges/app_michaels_beyond_core/cartridge/static/default/css/responsive.css",
+          "mikgit/cartridges/app_michaels_beyond_core/cartridge/static/default/css/print.css",
+          "mikgit/cartridges/app_michaels_beyond_core/cartridge/static/default/css/preferred-store.css"
+        ]
+      }
+    }
+  },
+  "cartridges": {
+    "app_michaels_beyond_core": {
+      "path": "mikgit/cartridges/app_michaels_beyond_core"
+    },
+    "app_cssuite": {
+      "path": "mikgit/cartridges/app_cssuite"
+    },
+    "app_michaels_beyond_core_richUI": {
+      "path": "mikgit/cartridges/app_michaels_beyond_core_richUI"
+    },
+    "app_michaels_canada": {
+      "path": "mikgit/cartridges/app_michaels_canada"
+    },
+    "app_michaels_canada_redux": {
+      "path": "mikgit/cartridges/app_michaels_canada_redux"
+    },
+    "app_michaels_cc": {
+      "path": "mikgit/cartridges/app_michaels_cc"
+    },
+    "app_michaels_core": {
+      "path": "mikgit/cartridges/app_michaels_core"
+    },
+    "app_michaels_midesign": {
+      "path": "mikgit/cartridges/app_michaels_midesign"
+    },
+    "app_michaelsus_mobile": {
+      "path": "mikgit/cartridges/app_michaelsus_mobile"
+    },
+    "app_splash": {
+      "path": "mikgit/cartridges/app_splash"
+    },
+    "bc_integrationframework": {
+      "path": "mikgit/cartridges/bc_integrationframework"
+    },
+    "bc_library": {
+      "path": "mikgit/cartridges/bc_library"
+    },
+    "bc_orderguard": {
+      "path": "mikgit/cartridges/bc_orderguard"
+    },
+    "bc_serviceframework": {
+      "path": "mikgit/cartridges/bc_serviceframework"
+    },
+    "bm_filemanager": {
+      "path": "mikgit/cartridges/bm_filemanager"
+    },
+    "bm_integrationframework": {
+      "path": "mikgit/cartridges/bm_integrationframework"
+    },
+    "bm_pinterest_commerce": {
+      "path": "mikgit/cartridges/bm_pinterest_commerce"
+    },
+    "bm_serviceframework": {
+      "path": "mikgit/cartridges/bm_serviceframework"
+    },
+    "bm_tools": {
+      "path": "mikgit/cartridges/bm_tools"
+    },
+    "content_review_tool": {
+      "path": "mikgit/cartridges/content_review_tool"
+    },
+    "int_Acxiom": {
+      "path": "mikgit/cartridges/int_Acxiom"
+    },
+    "int_bazaarvoice": {
+      "path": "mikgit/cartridges/int_bazaarvoice"
+    },
+    "int_coremetrics": {
+      "path": "mikgit/cartridges/int_coremetrics"
+    },
+    "int_customerexporttool": {
+      "path": "mikgit/cartridges/int_customerexporttool"
+    },
+    "int_gpshopper": {
+      "path": "mikgit/cartridges/int_gpshopper"
+    },
+    "int_GSI": {
+      "path": "mikgit/cartridges/int_GSI"
+    },
+    "int_KouponMedia": {
+      "path": "mikgit/cartridges/int_KouponMedia"
+    },
+    "int_pinterest_commerce": {
+      "path": "mikgit/cartridges/int_pinterest_commerce"
+    },
+    "int_pinterest_ocapi_hooks": {
+      "path": "mikgit/cartridges/int_pinterest_ocapi_hooks"
+    },
+    "int_product_recommendations": {
+      "path": "mikgit/cartridges/int_product_recommendations"
+    },
+    "int_scheduledcontent": {
+      "path": "mikgit/cartridges/int_scheduledcontent"
+    },
+    "int_simplefeeds": {
+      "path": "mikgit/cartridges/int_simplefeeds"
+    },
+    "int_tealium": {
+      "path": "mikgit/cartridges/int_tealium"
+    },
+    "int_third_parties": {
+      "path": "mikgit/cartridges/int_third_parties"
+    },
+    "int_translation": {
+      "path": "mikgit/cartridges/int_translation"
+    },
+    "int_where2getIt": {
+      "path": "mikgit/cartridges/int_where2getIt"
+    },
+    "int_where2getit_v2": {
+      "path": "mikgit/cartridges/int_where2getit_v2"
+    },
+    "Mobile": {
+      "path": "mikgit/cartridges/Mobile"
+    },
+    "app_optimizedcheckout": {
+      "path": "mikgit/cartridges/app_optimizedcheckout"
+    },
+    "bm_loyaltylookup": {
+      "path": "mikgit/cartridges/bm_loyaltylookup"
+    },
+    "int_loyalty": {
+      "path": "mikgit/cartridges/int_loyalty"
+    },
+    "int_mikSASS": {
+      "path": "mikgit/cartridges/int_mikSASS"
+    },
+    "int_servicenow": {
+      "path": "mikgit/cartridges/int_servicenow"
+    }
+  },
+  "connections": {
+    "staging": {
+      "host": "certs.staging.web.michaels.demandware.net",
+      "username": "rifer",
+      "password": "02e879c187dc0846984eb32e93",
+      "servercert": "certs.staging.web.michaels.demandware.net.pem",
+      "privatekey": {
+        "password": "28d924c380",
+        "keypath": "build.key",
+        "certpath": "build.pem"
+      }
+    }
+  },
+  "repos": {
+    "mikgit": {
+      "url": "git@codebasehq.com:michaels/michaels-com/mikgit.git",
+      "branch": "build",
+      "ssh": {
+        "privatekey": "~/.ssh/id_rsa",
+        "publickey": "~/.ssh/id_rsa.pub",
+        "password": ""
+      }
+    }
+  },
+  "defaults": {
+    "repo": "mikgit",
+    "connection": "staging"
+  }
+}

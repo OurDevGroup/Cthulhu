@@ -1,10 +1,11 @@
 const read = require('./lib/read');
 const conf = require('./lib/config');
+const utils = require('./lib/utils')
 
 const prog = require('commander');
 prog.version('0.1.3');
 
-prog.command('server [host]')
+prog.command('server [alias]')
     .description("Configure SFCC server connections")
     .option('-l, --list','list all defined SFCC connections')
     .option('-a, --add', "define a new SFCC server connection")
@@ -12,8 +13,8 @@ prog.command('server [host]')
     .option('-d, --delete', "delete and existing SFCC server connection")
     .option('-s, --set', "sets a SFCC server to be the default connection")
     .action(function(host, options) {
-        if(options.add && host) {
-            configServer(host);
+        if((options.add || options.update) && host) {
+            configServer(host, options.update);
         } 
         if(options.list) {
             for(var key in conf.connections) {
@@ -32,14 +33,14 @@ prog.command('repo [url] [branch]')
     .description("Configure GIT repository URLs")
     .option('-a, --add','configure a new GIT repository')
     .option('-l, --list','list all defined GIT repositories')
-    .option('-d, --delete','remove GIT repository')
+    .option('-d, --default','set GIT repository as the default')
+    .option('-r, --remove','remove GIT repository')
     .option('-c, --clean','nuke the working directory')
     .option('-f, --fetch','fetch latest code from remote server')
     .option('-b, --branch','switch branch for a given repo')
     .action(function(url, branch, options) {
-        if(options.clean) {
-            var util = require('./lib/utils')
-            util.clean();
+        if(options.clean) {            
+            utils.clean();
             console.log("Working folder was nuked!\n");
         }
         if(options.fetch) {
@@ -68,7 +69,12 @@ prog.command('repo [url] [branch]')
         if(options.add && url) {
             configRepo(url)
         }
-        if(options.delete && url) {
+        if(options.default && url) {
+            conf.save('defaults:repo', url, () =>{
+                console.log("\r\nDefault repo configuration set.\r\n")
+            });                       
+        }
+        if(options.remove && url) {
             conf.delete('repos:' + url, () => {
                 console.log(url, "removed.\n");
             });
@@ -163,14 +169,47 @@ prog.command('sass [infile] [outfile]')
         }
     });
 
+
+prog.command('concat')
+    .option('-l, --list', 'list all file and path definitions for the minify processor')
+    .option('-g, --glue', 'glue the files together')
+    .action(function(options) {
+        if(options.list) {
+            if(conf.processors.concat.files) {
+                for(var f in conf.processors.concat.files) {                    
+                    console.log(conf.processors.concat.files[f], "->", f)
+                }
+            } else {
+                console.log("No file definitions found.");
+            }          
+            console.log("\n")    
+        }
+
+        if(options.glue) {
+            var concat = require('./lib/concat');
+            concat.compile(null, () => {
+                console.log("Done.")
+            });
+        }
+    });
+
+
 prog.command('minify [infile] [outfile]')
     .option('-l, --list', 'list all file and path definitions for the minify processor')
     .option('-a, --add', 'add file or path defintion')
+    .option('-s, --shrink', 'perform the minification on the defined files')
     .option('-d, --delete', 'delete a file or path defintion')
     .action(function(infile, outfile, options) {
         if(!conf.processors.minify) {
             conf.save("processors:minify:files", []);
             conf.save("processors:minify:paths", []);
+        }
+
+        if(options.shrink) {
+            var min = require('./lib/minify')
+             min.minify(null, null, () => { 
+                 console.log("Minification is done.")
+             });
         }
 
         if(options.list) {
@@ -230,12 +269,23 @@ prog.command('minify [infile] [outfile]')
 prog.command('cartridge [name]')
     .option('-a, --add', 'define new cartridge')
     .option('-l, --list', 'list all cartridge definitions')
+    .option('-c, --config', 'perform automatic configuration, you lazy bastard')
     .option('-d, --delete', 'delete a cartridge definition')
     .action(function(name, options) {
         if(name && options.delete) {
             conf.delete('cartridges:' + name, () => {
                 console.log(name, "removed.");
             });
+        }
+
+        if(options.config && name) {
+            if(conf.cartridges) {
+                for(cart in conf.cartridges) {
+                    if(conf.cartridges[cart].files == null && conf.cartridges[cart].path == null) {
+                            conf.save('cartridges:' + cart + ':path', name + cart)
+                    }
+                }
+            }
         }
 
         if(options.list) {
@@ -249,11 +299,9 @@ prog.command('cartridge [name]')
             var repos = Object.keys(conf.repos);
             
             read({prompt:'What is the repo contains ' + name + '?' + (repos.length > 0 ? ' (' + repos[0] + ')' : '') +': '}, (e, repo) => {  
-                repo = repo || (repos.length > 0 ? repos[0] : null);
-                
-                var util = require('./lib/utils');
+                repo = repo || (repos.length > 0 ? repos[0] : null);            
 
-                util.findDirectory('./working/' + repo, name, (path) => {
+                utils.findDirectory('./working/' + repo, name, (path) => {
                     path = path.replace('./working', '');
                     read({prompt:'Where is the ' + name + ' located in the working directory?' + (path.length > 0 ? ' (' + path + ')' : '') +': '}, (e, cartpath) => {  
                         cartpath = cartpath || path
@@ -338,40 +386,87 @@ function buildZip() {
     });
 }
 
-function configServer(host) {
-    conf.save('connections:' + host + ':host', host)
+function configServer(alias, update) {    
+    conf.connections[alias] = conf.connections ? (conf.connections[alias] || {}) : {};
 
-    read({prompt:'Enter the username for ' + host + ': '}, (e, user) => {
-        conf.save('connections:' + host +':username', user);
-        
-        read({prompt:'Enter the password for ' + user + ': ', silent:true}, (e, pass) => {
-            var utils = require('./lib/utils.js');
-            conf.save('connections:' + host +':password', utils.encrypt(pass,user));
+    read({prompt:'Enter the host name for ' + alias + (update ? ' (' + conf.connections[alias].host + ')': '') + ': '}, (e, host) => {        
+        if(update && (!host || host.length == 0)) 
+            host = conf.connections[alias].host;
 
-            read({prompt:'Does ' + host + ' require a certificate to upload files? [yes/no]: '}, (e, needscert) => {                        
-                if(needscert === "yes") {
-                    read({prompt:'Enter the SFCC private certificate for ' + host + ': '}, (e, privatecert) => {
-                        conf.save('connections:' + host +':servercert', privatecert);
-                        
-                        read({prompt:'Enter the path for the private PEM file: '}, (e, pemfile) => {
-                            read({prompt:'Enter the path for the private KEY file: '}, (e, keyfile) => {
-                                read({prompt:'Enter the passphrase for the private key: ', silent:true}, (e, pass) => {
-                                    conf.save('connections:' + host +':privatekey:certpath', pemfile);
-                                    conf.save('connections:' + host +':privatekey:keypath', keyfile);
-                                    conf.save('connections:' + host +':privatekey:password', utils.encrypt(pass,user), () => {
-                                        console.log("\r\nServer configuration complete.\r\n")
+        conf.save('connections:' + alias + ':host', host)
+
+        var oldUser = update ? conf.connections[alias].username : null;
+
+        read({prompt:'Enter the username for ' + host + (update ? ' (' + conf.connections[alias].username + ')': '') + ': '}, (e, user) => {            
+            var oldPass = null;
+
+            if(update && (!user || user.length == 0)) {
+                if(conf.connections[alias].password && oldUser)
+                    oldPass = utils.decrypt(conf.connections[alias].password, oldUser); //oldpass
+                user = conf.connections[alias].username;
+            }
+
+            conf.save('connections:' + alias +':username', user);
+            
+            read({prompt:'Enter the password for ' + user + (update && oldPass ? ' (saved password)': '') + ': ', silent:true}, (e, pass) => {
+                if(update && (!pass || pass.length == 0)) 
+                    pass = oldPass
+
+                
+                conf.save('connections:' + alias +':password', utils.encrypt(pass,user));
+
+
+
+
+                read({prompt:'Does ' + host + ' require a certificate to upload files? [yes/no] ' + (update  && conf.connections[alias].servercert ? ' (yes)': '(no)') + ': '}, (e, needscert) => {   
+                    if(update && (!needscert || needscert.length == 0)) 
+                        needscert = conf.connections[alias].servercert ? 'yes' : 'no';                    
+
+                    if(needscert === "yes") {
+                        read({prompt:'Enter the SFCC private certificate PEM for ' + host + (update ? ' (' + conf.connections[alias].servercert + ')': '') + ': '}, (e, privatecert) => {
+                            if(update && (!privatecert || privatecert.length == 0)) 
+                                privatecert = conf.connections[alias].servercert;
+
+                            conf.save('connections:' + alias +':servercert', privatecert);
+                            
+                            read({prompt:'Enter the path for the private PEM file' + (update && conf.connections[alias].privatekey && conf.connections[alias].privatekey.certpath ? ' (' + conf.connections[alias].privatekey.certpath + ')': '') + ': '}, (e, pemfile) => {
+                                read({prompt:'Enter the path for the private KEY file' + (update &&  conf.connections[alias].privatekey && conf.connections[alias].privatekey.keypath ? ' (' + conf.connections[alias].privatekey.keypath + ')': '') + ': '}, (e, keyfile) => {
+
+                                    oldPass = null;
+                                    if(conf.connections[alias].privatekey && conf.connections[alias].privatekey.password && oldUser)
+                                        oldPass = utils.decrypt(conf.connections[alias].privatekey.password, oldUser); //oldpass
+
+
+                                    read({prompt:'Enter the passphrase for the private key' + (update && oldPass ? ' (saved password)': '') + ': ', silent:true}, (e, pass) => {
+
+
+                                        if(update && (!pemfile || pemfile.length == 0)) 
+                                            pemfile = conf.connections[alias].privatekey.certpath;
+
+                                        if(update && (!keyfile || keyfile.length == 0)) 
+                                            keyfile = conf.connections[alias].privatekey.keypath;                                            
+
+                                        if(update && (!pass || pass.length == 0)) 
+                                            pass = oldPass;
+
+
+                                        conf.save('connections:' + alias +':privatekey:certpath', pemfile);
+                                        conf.save('connections:' + alias +':privatekey:keypath', keyfile);
+                                        conf.save('connections:' + alias +':privatekey:password', utils.encrypt(pass,user), () => {
+                                            console.log("\r\nServer configuration complete.\r\n")
+                                        });
                                     });
                                 });
-                            });
-                        });                              
-                    });
-                } else {
-                    var x = conf.delete('connections:' + host + ':privatekey');
-                    console.log("\r\nServer configuration complete.\r\n")
-                }
-                
-            });
-        });                
+                            });                              
+                        });
+                    } else {
+                        var x = conf.delete('connections:' + alias + ':privatekey');
+                        console.log("\r\nServer configuration complete.\r\n")
+                    }
+                    
+                });
+            });                
+        });
     });
 }
 
