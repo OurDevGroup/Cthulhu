@@ -6,16 +6,18 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 class App extends React.Component {
     constructor(props) {
         super(props);
-        var ONE_HOUR = 60 * 60 * 1000;
-        if(!(((new Date) - localStorage.getItem("date")) < ONE_HOUR)) {
-            llocalStorage.setItem("authenticated", false)
+        var oneHour = 60 * 60 * 1000;
+        var currentTime = new Date();
+        var loginTime = new Date(localStorage.getItem("date"));
+        if(!((currentTime - loginTime) < oneHour)) {
+            localStorage.setItem("authenticated", false)
         }
 
         this.state = {
             username: '',
             password: '',
             message: '',
-            authenticated: typeof localStorage.getItem("authenticated") !== "undefined" ? localStorage.getItem("authenticated") : false,
+            authenticated: true,//typeof localStorage.getItem("authenticated") !== "undefined" ? localStorage.getItem("authenticated") : false,
             showMessage: false
         };
 
@@ -42,7 +44,6 @@ class App extends React.Component {
                 this.setState({message: data.message, authenticated: data.authenticated})
                 localStorage.setItem("authenticated", this.state.authenticated);
                 localStorage.setItem("date", new Date());
-                console.log(localStorage.getItem("authenticated"))
             }.bind(this)
         });
         this.setState({showMessage: true});
@@ -80,7 +81,7 @@ class App extends React.Component {
     }
 
     renderBody() {
-        if(!this.state.authenticated){
+        if(this.state.authenticated.toString() == "false"){
             return (
                 <div>
                     <img src="images/cuthulhuLogo.jpg" className="img-fluid" />
@@ -103,9 +104,7 @@ class App extends React.Component {
             )
         }
         else {
-            console.log(config.repos);
             var configs = Object.keys(config).map((key, index) => {
-                console.log(key);
                 return (
                     <Sections sectionName={key} />
                 );

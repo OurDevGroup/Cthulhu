@@ -1,6 +1,7 @@
 import React from 'react';
 import config from '../../../config.json';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import App from './app';
 
 class Sections extends React.Component {
     constructor(props) {
@@ -31,14 +32,14 @@ class Sections extends React.Component {
                 sections.push(Object.keys(object[keyName]).map((key, index)=>{
                     if(index == 0) {
                         return (
-                            <div>
-                            <h3>{keyName}</h3>
-                            <div className="formGroup col-sm-12">
-                                <label>
-                                    {key}:
-                                </label>
-                                <input type="text" name={key} data-parent={keyName} onChange={this.handleSectionsChange.bind(this)} defaultValue={object[keyName][key]}/>
-                            </div>
+                            <div key={index}>
+                                <h3>{keyName}</h3>
+                                <div className="formGroup col-sm-12">
+                                    <label>
+                                        {key}:
+                                    </label>
+                                    <input type="text" name={key} data-parent={keyName} onChange={this.handleSectionsChange.bind(this)} defaultValue={object[keyName][key]}/>
+                                </div>
                             </div>
                         )
                     }
@@ -54,7 +55,7 @@ class Sections extends React.Component {
                             );
                         });
                         return (
-                            <div className="formGroup col-sm-12">
+                            <div key={index} className="formGroup col-sm-12">
                                 <label>
                                     {key}
                                 </label>
@@ -64,7 +65,7 @@ class Sections extends React.Component {
                     }
                     else
                         return (
-                            <div className="formGroup col-sm-12">
+                            <div key={index} className="formGroup col-sm-12">
                                 <label>
                                     {key}:
                                 </label>
@@ -77,7 +78,7 @@ class Sections extends React.Component {
         else {
             sections.push(Object.keys(object).map((key, index)=>{
                 return(
-                    <div>
+                    <div key={index}>
                         <h3>{this.props.sectionName}</h3>
                         <div className="formGroup col-sm-12">
                             <label>
@@ -118,30 +119,6 @@ class Sections extends React.Component {
         this.setState({
             newSetting: setting
         })
-        if(typeof this.state.newSetting.parent !== "") {
-            var secJSON = this.state.sectionsJSON;
-            if(!(this.state.newSetting.parent.length > 1)){
-                var secJSONStr = JSON.stringify(secJSON);
-                secJSONStr = secJSONStr.slice(0, -1);
-                secJSONStr += ',"' + this.state.newSetting.parent + '": ""}'
-                secJSON = JSON.parse(secJSONStr);
-                this.setState({
-                    sectionsJSON: secJSON
-                })
-            } else if(typeof secJSON[this.state.newSetting.parent] == "undefined") {
-                var oldName = this.state.newSetting.parent.slice(0, -1);
-                var newName = this.state.newSetting.parent;
-                if(secJSON.hasOwnProperty(this.state.newSetting.parent.slice(0, -1))) {
-                    if (secJSON.hasOwnProperty(oldName)) {
-                        secJSON[newName] = secJSON[oldName];
-                        delete secJSON[oldName];
-                    }
-                }
-            } else if(typeof this.state.newSetting.name !== "" && typeof this.state.newSetting.value !== "") {
-                var jsonString = '{"' + this.state.newSetting.name + '": "' + this.state.newSetting.value + '"}';
-                secJSON[this.state.newSetting.parent] = JSON.parse(jsonString);
-            }
-        }
     }
 
 
@@ -170,6 +147,24 @@ class Sections extends React.Component {
     }
 
     handleSectionsSave(event) {
+        if(typeof this.state.newSetting.parent !== "" && typeof this.state.newSetting.name !== "" && typeof this.state.newSetting.value !== "") {
+            var secJSONStr = JSON.stringify(this.state.sectionsJSON);
+            secJSONStr = secJSONStr.slice(0, -1);
+            if(this.state.newSetting.value.charAt(0) != "{")
+                var jsonString = ',"' + this.state.newSetting.parent + '": {"' + this.state.newSetting.name + '": "' + this.state.newSetting.value + '"}}';
+            else
+                var jsonString = ',"' + this.state.newSetting.parent + '": {"' + this.state.newSetting.name + '": ' + this.state.newSetting.value + '}}';
+            secJSONStr += jsonString;
+            try {
+                this.setState({
+                    sectionsJSON: JSON.parse(secJSONStr)
+                })
+            } catch (error) {
+                App.MessageBad();
+                //this.MessageBad("Are you tring to enter JSON into a value field? Check your syntax!")
+            }
+        }
+        /*
         $.ajax({
             url: "http://localhost:3030/changeSetting?settingName="+this.state.sectionName,
             dataType: 'json',
@@ -178,7 +173,7 @@ class Sections extends React.Component {
             success: function(data) {
                 this.setState({message: data.message, updated: data.updated});
             }.bind(this)
-        });
+        });*/
     }
 
     SlideBox() {
@@ -230,11 +225,10 @@ class Sections extends React.Component {
 
     componentWillUpdate(nextProps, nextState) {
         if (nextState.updated) {
-            window.location.replace();
+            window.location.reload();
             return true;
         }
         else{
-            console.log("test2")
             return false;
         }
     }
