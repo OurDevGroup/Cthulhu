@@ -27,7 +27,7 @@
     "nconf": "^0.8.4",
     "node-minify": "^2.1.1",
     "node-sass": "^4.5.3",
-    "nodegit": "^0.18.3",
+    "nodegit": "^0.20.1",
     "nodegit-clone": "^1.2.0",
     "path": "^0.12.7",
     "react": "^15.5.4",

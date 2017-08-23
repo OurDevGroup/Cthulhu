@@ -301,7 +301,7 @@ prog.command('cartridge [name]')
             read({prompt:'What is the repo contains ' + name + '?' + (repos.length > 0 ? ' (' + repos[0] + ')' : '') +': '}, (e, repo) => {  
                 repo = repo || (repos.length > 0 ? repos[0] : null);            
 
-                utils.findDirectory('./working/' + repo, name, (path) => {
+                utils.findDirectory('./working' + repo, name, (path) => {
                     path = path.replace('./working', '');
                     read({prompt:'Where is the ' + name + ' located in the working directory?' + (path.length > 0 ? ' (' + path + ')' : '') +': '}, (e, cartpath) => {  
                         cartpath = cartpath || path
